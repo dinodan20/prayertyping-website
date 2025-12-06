@@ -102,6 +102,12 @@
       align-items: center;
     }
 
+    #sliderControls {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
     .fontButton {
       font-size: 24px;
       color: black;
@@ -205,13 +211,15 @@
         <div class="fontButton" id="decreaseFont">-</div>
         <div class="fontButton" id="increaseFont">+</div>
       </div>
-      <div id="opacityControl">
-        <label for="opacitySlider">Transparency:</label>
-        <input type="range" id="opacitySlider" min="0" max="100" value="0">
-      </div>
-      <div id="colorControl">
-        <label for="colorPicker">Text Color:</label>
-        <input type="color" id="colorPicker" value="#FFFF00">
+      <div id="sliderControls">
+        <div id="opacityControl">
+          <label for="opacitySlider">Transparency:</label>
+          <input type="range" id="opacitySlider" min="0" max="100" value="0">
+        </div>
+        <div id="colorControl">
+          <label for="colorPicker">Text Color:</label>
+          <input type="color" id="colorPicker" value="#FFFF00">
+        </div>
       </div>
     </div>
     <div id="inputContainer">
