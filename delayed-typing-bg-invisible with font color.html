@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: white;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #uploadSection {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background-color: rgba(0, 0, 0, 0.8);
+    }
+
+    #uploadSection h1 {
+      color: white;
+      font-family: Arial, Helvetica, sans-serif;
+      margin-bottom: 20px;
+    }
+
+    #uploadSection input[type="file"] {
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    #uploadButton {
+      padding: 10px 30px;
+      font-size: 18px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #uploadButton:hover {
+      background-color: #45a049;
+    }
+
+    #typingSection {
+      display: none;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #inputContainer {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+    }
+
+    #input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #fontControls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    #fontButtons {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .fontButton {
+      font-size: 24px;
+      color: black;
+      font-weight: normal;
+      cursor: pointer;
+      background-color: rgba(255, 255, 255, 0.7);
+      padding: 5px 15px;
+      border-radius: 5px;
+      user-select: none;
+    }
+
+    .fontButton:hover {
+      background-color: rgba(255, 255, 255, 0.9);
+    }
+
+    #opacityControl {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background-color: rgba(255, 255, 255, 0.7);
+      padding: 8px 15px;
+      border-radius: 5px;
+    }
+
+    #opacityControl label {
+      font-size: 14px;
+      color: black;
+      font-weight: normal;
+      margin: 0;
+    }
+
+    #opacitySlider {
+      width: 120px;
+      cursor: pointer;
+    }
+
+    #colorControl {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background-color: rgba(255, 255, 255, 0.7);
+      padding: 8px 15px;
+      border-radius: 5px;
+    }
+
+    #colorControl label {
+      font-size: 14px;
+      color: black;
+      font-weight: normal;
+      margin: 0;
+    }
+
+    #colorPicker {
+      width: 50px;
+      height: 30px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    #outputContainer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 100px 60px 60px 60px;
+      box-sizing: border-box;
+    }
+
+    #output {
+      font-family: Arial, Helvetica, sans-serif;
+      text-align: center;
+      font-weight: bold;
+      color: yellow;
+      transition: opacity 1s;
+      word-wrap: break-word;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+      max-width: 100%;
+      max-height: 100%;
+      overflow: hidden;
+      line-height: 1.2;
+    }
+  </style>
+</head>
+<body>
+  <!-- Upload Section -->
+  <div id="uploadSection">
+    <h1>Upload a Background Image</h1>
+    <input type="file" id="fileInput" accept="image/*">
+    <button id="uploadButton">Continue</button>
+  </div>
+
+  <!-- Typing Section (hidden initially) -->
+  <div id="typingSection">
+    <div id="fontControls">
+      <div id="fontButtons">
+        <div class="fontButton" id="decreaseFont">-</div>
+        <div class="fontButton" id="increaseFont">+</div>
+      </div>
+      <div id="opacityControl">
+        <label for="opacitySlider">Transparency:</label>
+        <input type="range" id="opacitySlider" min="0" max="100" value="0">
+      </div>
+      <div id="colorControl">
+        <label for="colorPicker">Text Color:</label>
+        <input type="color" id="colorPicker" value="#FFFF00">
+      </div>
+    </div>
+    <div id="inputContainer">
+      <input id="input" type="text">
+    </div>
+    <div id="outputContainer">
+      <div id="output" style="opacity: 1;">Start typing here!</div>
+    </div>
+  </div>
+
+  <script>
+    // Upload functionality
+    const uploadSection = document.getElementById("uploadSection");
+    const typingSection = document.getElementById("typingSection");
+    const fileInput = document.getElementById("fileInput");
+    const uploadButton = document.getElementById("uploadButton");
+
+    uploadButton.addEventListener("click", function() {
+      const file = fileInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.body.style.backgroundImage = `url(${e.target.result})`;
+          uploadSection.style.display = "none";
+          typingSection.style.display = "block";
+          adjustFontSize(); // Initial font size adjustment
+        };
+        reader.readAsDataURL(file);
+      } else {
+        alert("Please select an image first!");
+      }
+    });
+
+    // Get the input and output elements
+    let input = document.getElementById("input");
+    let output = document.getElementById("output");
+    let outputContainer = document.getElementById("outputContainer");
+    let intervalID;
+    let fontSizeMultiplier = 1.0; // User can adjust this with +/- buttons
+
+    // Font control buttons
+    const decreaseBtn = document.getElementById("decreaseFont");
+    const increaseBtn = document.getElementById("increaseFont");
+    const opacitySlider = document.getElementById("opacitySlider");
+    const colorPicker = document.getElementById("colorPicker");
+
+    decreaseBtn.addEventListener("click", function() {
+      fontSizeMultiplier = Math.max(0.5, fontSizeMultiplier - 0.1);
+      adjustFontSize();
+    });
+
+    increaseBtn.addEventListener("click", function() {
+      fontSizeMultiplier = Math.min(3.0, fontSizeMultiplier + 0.1);
+      adjustFontSize();
+    });
+
+    // Opacity slider - controls background transparency
+    opacitySlider.addEventListener("input", function() {
+      const opacityValue = this.value / 100; // Convert 0-100 to 0-1
+      document.body.style.setProperty('--bg-opacity', opacityValue);
+      // Apply opacity to the ::before pseudo-element
+      const styleSheet = document.styleSheets[0];
+      const rules = styleSheet.cssRules || styleSheet.rules;
+      
+      // Find and update the body::before rule
+      for (let i = 0; i < rules.length; i++) {
+        if (rules[i].selectorText === 'body::before') {
+          rules[i].style.opacity = opacityValue;
+          break;
+        }
+      }
+    });
+
+    // Color picker - changes text color
+    colorPicker.addEventListener("input", function() {
+      output.style.color = this.value;
+    });
+
+    // Auto-focus the invisible input so typing starts immediately
+    input.focus();
+    
+    // Refocus input if user clicks anywhere on the screen
+    document.addEventListener("click", function() {
+      input.focus();
+    });
+
+    // Function to calculate and set the appropriate font size
+    function adjustFontSize() {
+      const text = input.value || output.textContent; // Use current input value for real-time adjustment
+      const containerWidth = outputContainer.clientWidth;
+      const containerHeight = outputContainer.clientHeight;
+      
+      // Start with a base font size (in pixels, roughly equivalent to 12pt)
+      let fontSize = 16;
+      
+      // If there's text, calculate the optimal size
+      if (text.length > 0) {
+        // Create a temporary element to measure text dimensions
+        const temp = document.createElement('div');
+        temp.style.position = 'absolute';
+        temp.style.visibility = 'hidden';
+        temp.style.fontFamily = output.style.fontFamily || 'Arial, Helvetica, sans-serif';
+        temp.style.fontWeight = 'bold';
+        temp.style.lineHeight = '1.2';
+        temp.style.wordWrap = 'break-word';
+        temp.style.whiteSpace = 'normal';
+        temp.textContent = text;
+        document.body.appendChild(temp);
+        
+        // Start with a reasonable maximum font size
+        let maxFontSize = Math.min(containerHeight * 0.15, 60);
+        let minFontSize = 12; // Minimum readable size
+        
+        // Binary search for the optimal font size
+        while (maxFontSize - minFontSize > 1) {
+          fontSize = Math.floor((maxFontSize + minFontSize) / 2);
+          temp.style.fontSize = fontSize + 'px';
+          temp.style.maxWidth = containerWidth + 'px';
+          
+          // Check if content fits with some buffer space
+          if (temp.scrollHeight <= containerHeight * 0.90 && temp.scrollWidth <= containerWidth) {
+            minFontSize = fontSize;
+          } else {
+            maxFontSize = fontSize;
+          }
+        }
+        
+        // Use the smaller size to ensure it fits
+        fontSize = minFontSize;
+        
+        // Double-check that it actually fits, if not reduce further
+        temp.style.fontSize = fontSize + 'px';
+        temp.style.maxWidth = containerWidth + 'px';
+        while (temp.scrollHeight > containerHeight * 0.90 && fontSize > 10) {
+          fontSize -= 1;
+          temp.style.fontSize = fontSize + 'px';
+        }
+        
+        document.body.removeChild(temp);
+      } else {
+        // For empty or very short text, use a larger readable size
+        fontSize = Math.min(containerHeight * 0.08, 48);
+      }
+      
+      // Apply the user's font size multiplier
+      fontSize = fontSize * fontSizeMultiplier;
+      
+      output.style.fontSize = fontSize + 'px';
+    }
+
+    function checknewText() {
+      if (input.value !== output.textContent) {
+        output.style.opacity = 0;
+        let text = input.value;
+
+        setTimeout(function() {
+          output.textContent = text;
+          adjustFontSize(); // Adjust font size based on new text
+        }, 300);
+
+        setTimeout(function() {
+          output.style.opacity = 1;
+        }, 300);
+      }
+    }
+
+    intervalID = setInterval(checknewText, 1000);
+
+    input.addEventListener("keyup", function() {
+      let text = input.value;
+    });
+    
+    // Also adjust font size immediately on input for real-time adjustment
+    input.addEventListener("input", function() {
+      adjustFontSize();
+    });
+
+    // Adjust font size when window is resized
+    window.addEventListener('resize', function() {
+      adjustFontSize();
+    });
+
+    window.addEventListener('load', function() {
+      adjustFontSize();
+    });
+  </script>
+</body>
+</html>
